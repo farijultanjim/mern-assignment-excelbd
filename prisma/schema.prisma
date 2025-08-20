@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// User roles
+enum Role {
+  ADMIN
+  AGENT
+  CUSTOMER
+}
+
+/// Parcel delivery status
+enum ParcelStatus {
+  PENDING        // Created but not yet assigned
+  ASSIGNED       // Assigned to agent
+  PICKED_UP      // Agent picked up
+  IN_TRANSIT     // On the way
+  DELIVERED      // Successfully delivered
+  FAILED         // Delivery failed
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // hashed password
+  role      Role     @default(CUSTOMER)
+
+  // Relations
+  parcels   Parcel[] @relation("CustomerParcels")
+  assigned  Parcel[] @relation("AgentParcels")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Parcel {
+  id             String        @id @default(cuid())
+  trackingCode   String        @unique
+  pickupAddress  String
+  deliveryAddress String
+  parcelType     String
+  codAmount      Float?        // cash on delivery
+  prepaid        Boolean       @default(false)
+  status         ParcelStatus  @default(PENDING)
+
+  // Relations
+  customerId     String
+  customer       User          @relation("CustomerParcels", fields: [customerId], references: [id])
+
+  agentId        String?
+  agent          User?         @relation("AgentParcels", fields: [agentId], references: [id])
+
+  locations      Location[]    // live tracking
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  lat       Float
+  lng       Float
+  timestamp DateTime @default(now())
+
+  parcelId  String
+  parcel    Parcel   @relation(fields: [parcelId], references: [id])
+}
