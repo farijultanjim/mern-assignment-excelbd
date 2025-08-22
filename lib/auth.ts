@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 
@@ -43,7 +43,7 @@ export const authOptions: NextAuthOptions = {
       session.user = {
         ...session.user,
         id: token.id as string,
-        role: token.role as string,
+        role: token.role as "ADMIN" | "AGENT" | "CUSTOMER",
       };
       return session;
     },
