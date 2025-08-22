@@ -14,32 +14,57 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+// parcel type options
+const parcelOptions = [
+  { value: "DOCUMENT", label: "Documents" },
+  { value: "SMALL", label: "500g (Very Small Parcel)" },
+  { value: "MEDIUM", label: "1-2kg (Medium Parcel)" },
+  { value: "LARGE", label: "3-5kg (Large Parcel)" },
+];
 
 export default function NewParcelPage() {
   const [form, setForm] = useState({
     pickupAddress: "",
     deliveryAddress: "",
     parcelType: "",
+    paymentMethod: "", // "COD" | "PREPAID"
     codAmount: "",
-    prepaid: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const onChange =
-    (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm({
-        ...form,
-        [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
-      });
+  const handleChange = (key: keyof typeof form, value: any) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
 
-    if (!form.pickupAddress || !form.deliveryAddress || !form.parcelType) {
+    if (
+      !form.pickupAddress ||
+      !form.deliveryAddress ||
+      !form.parcelType ||
+      !form.paymentMethod
+    ) {
       toast.error("Missing fields", {
         description: "Please fill in all required fields.",
+      });
+      return;
+    }
+
+    if (form.paymentMethod === "COD" && !form.codAmount) {
+      toast.error("Missing COD amount", {
+        description: "Enter COD amount for cash on delivery.",
       });
       return;
     }
@@ -78,54 +103,84 @@ export default function NewParcelPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Pickup */}
             <div>
               <Label htmlFor="pickupAddress">Pickup Address</Label>
               <Input
                 id="pickupAddress"
                 placeholder="Enter pickup address"
                 value={form.pickupAddress}
-                onChange={onChange("pickupAddress")}
+                onChange={(e) => handleChange("pickupAddress", e.target.value)}
               />
             </div>
+
+            {/* Delivery */}
             <div>
               <Label htmlFor="deliveryAddress">Delivery Address</Label>
               <Input
                 id="deliveryAddress"
                 placeholder="Enter delivery address"
                 value={form.deliveryAddress}
-                onChange={onChange("deliveryAddress")}
+                onChange={(e) =>
+                  handleChange("deliveryAddress", e.target.value)
+                }
               />
-            </div>
-            <div>
-              <Label htmlFor="parcelType">Parcel Type / Size</Label>
-              <Input
-                id="parcelType"
-                placeholder="e.g. Small Box, Document"
-                value={form.parcelType}
-                onChange={onChange("parcelType")}
-              />
-            </div>
-            <div>
-              <Label htmlFor="codAmount">Cash on Delivery (optional)</Label>
-              <Input
-                id="codAmount"
-                type="number"
-                placeholder="Enter amount or leave empty"
-                value={form.codAmount}
-                onChange={onChange("codAmount")}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="prepaid"
-                type="checkbox"
-                checked={form.prepaid}
-                onChange={onChange("prepaid")}
-                className="h-4 w-4 border-gray-300 rounded"
-              />
-              <Label htmlFor="prepaid">Prepaid</Label>
             </div>
 
+            {/* Parcel Type Dropdown (Shadcn Select) */}
+            <div>
+              <Label>Parcel Type / Size</Label>
+              <Select
+                value={form.parcelType}
+                onValueChange={(value) => handleChange("parcelType", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select parcel type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parcelOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Payment Method (RadioGroup) */}
+            <div>
+              <Label>Payment Method</Label>
+              <RadioGroup
+                value={form.paymentMethod}
+                onValueChange={(value) => handleChange("paymentMethod", value)}
+                className="flex gap-6 mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="PREPAID" id="prepaid" />
+                  <Label htmlFor="prepaid">Prepaid</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="COD" id="cod" />
+                  <Label htmlFor="cod">Cash on Delivery (COD)</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* COD Amount (conditional) */}
+            {form.paymentMethod === "COD" && (
+              <div>
+                <Label htmlFor="codAmount">COD Amount</Label>
+                <Input
+                  id="codAmount"
+                  type="number"
+                  placeholder="Enter COD amount"
+                  value={form.codAmount}
+                  onChange={(e) => handleChange("codAmount", e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Submit */}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <span className="inline-flex items-center gap-2">

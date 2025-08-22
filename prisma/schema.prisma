@@ -40,26 +40,26 @@ model User {
 }
 
 model Parcel {
-  id             String        @id @default(cuid())
-  trackingCode   String        @unique
+  id             String   @id @default(cuid())
+  trackingCode   String   @unique
   pickupAddress  String
   deliveryAddress String
   parcelType     String
-  codAmount      Float?        // cash on delivery
-  prepaid        Boolean       @default(false)
-  status         ParcelStatus  @default(PENDING)
-
-  // Relations
-  customerId     String
-  customer       User          @relation("CustomerParcels", fields: [customerId], references: [id])
-
-  agentId        String?
-  agent          User?         @relation("AgentParcels", fields: [agentId], references: [id])
-
-  locations      Location[]    // live tracking
-
+  codAmount      Float?
+  prepaid        Boolean  @default(false)
+  status         String   @default("PENDING")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  // relations
+  customerId     String
+  customer       User     @relation("CustomerParcels", fields: [customerId], references: [id])
+
+  assignedAgentId String?
+  assignedAgent   User?     @relation("AgentParcels", fields: [assignedAgentId], references: [id])
+
+  // 👇 important: add the other side of relation
+  locations      Location[]
 }
 
 model Location {

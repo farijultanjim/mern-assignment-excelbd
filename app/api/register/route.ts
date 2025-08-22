@@ -3,11 +3,18 @@ import bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, role } = await req.json();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !role) {
       return new Response(
         JSON.stringify({ message: "All fields are required." }),
+        { status: 400 }
+      );
+    }
+
+    if (role !== "CUSTOMER" && role !== "AGENT") {
+      return new Response(
+        JSON.stringify({ message: "Invalid role selected." }),
         { status: 400 }
       );
     }
@@ -27,13 +34,12 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
-        role: "CUSTOMER",
+        role,
       },
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 201 });
   } catch (err: any) {
-    // Handle Prisma unique error fallback
     if (err?.code === "P2002") {
       return new Response(
         JSON.stringify({ message: "Email already registered." }),

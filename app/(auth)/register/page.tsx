@@ -12,26 +12,60 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   const onChange =
-    (key: "name" | "email" | "password") =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
+    (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm({ ...form, [key]: e.target.value });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
 
-    if (!form.name || !form.email || !form.password) {
+    if (
+      !form.name ||
+      !form.email ||
+      !form.password ||
+      !form.confirmPassword ||
+      !form.role
+    ) {
       toast.error("Missing fields", {
         description: "Please fill in all fields.",
+      });
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      toast.error("Password mismatch", {
+        description: "Passwords do not match.",
+      });
+      return;
+    }
+
+    if (form.password.length < 6) {
+      toast.error("Weak password", {
+        description: "Password must be at least 6 characters.",
       });
       return;
     }
@@ -90,14 +124,61 @@ export default function RegisterPage() {
               />
             </div>
             <div>
+              <Label htmlFor="role">Role</Label>
+              <Select
+                onValueChange={(val) => setForm({ ...form, role: val })}
+                value={form.role}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CUSTOMER">Customer</SelectItem>
+                  <SelectItem value="AGENT">Agent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={onChange("password")}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={onChange("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={form.confirmPassword}
+                  onChange={onChange("confirmPassword")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
