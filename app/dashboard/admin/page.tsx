@@ -153,7 +153,7 @@ export default function AdminDashboardPage() {
       parcels.map((p) => ({
         TrackingCode: p.trackingCode,
         Customer: p.customer?.name || p.customer?.email || "N/A",
-        Agent: p.assignedAgent?.name || p.assignedAgent?.email || "Unassigned",
+        Agent: agents.find(a => a.id === p.assignedAgentId)?.name || agents.find(a => a.id === p.assignedAgentId)?.email || "Unassigned",
         Status: p.status,
         PaymentType: p.prepaid ? "PREPAID" : "COD",
         CODAmount: p.prepaid ? 0 : p.codAmount ?? 0,
@@ -198,9 +198,7 @@ export default function AdminDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ৳ {metrics.totalCOD.toLocaleString()}
-            </div>
+            <div className="text-2xl font-bold">৳ {metrics.totalCOD.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
@@ -281,16 +279,14 @@ export default function AdminDashboardPage() {
                       </TableCell>
                       <TableCell className="max-w-[140px] truncate">
                         {p.assignedAgentId
-                          ? agents.find((a) => a.id === p.assignedAgentId)
-                              ?.name || "Assigned"
+                          ? agents.find((a) => a.id === p.assignedAgentId)?.name ||
+                            "Assigned"
                           : "Not assigned"}
                       </TableCell>
                       <TableCell className="text-right">
                         <Select
                           disabled={assigning === p.id}
-                          onValueChange={(agentId) =>
-                            handleAssign(p.id, agentId)
-                          }
+                          onValueChange={(agentId) => handleAssign(p.id, agentId)}
                         >
                           <SelectTrigger className="w-[160px] ml-auto">
                             <SelectValue placeholder="Select agent" />
@@ -326,11 +322,7 @@ export default function AdminDashboardPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center">
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
     </div>
