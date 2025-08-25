@@ -14,7 +14,7 @@ export function SearchBox({ value, onChange, placeholder }: SearchBoxProps) {
       placeholder={placeholder || "Search..."}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="max-w-xs"
+      className="max-w-lg"
     />
   );
 }
